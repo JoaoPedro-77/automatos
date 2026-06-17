@@ -16,11 +16,14 @@ class DFA:
         raise ValueError(f"Símbolo '{symbol}' não pertence ao alfabeto {self.sigma}")
 
       if (q, symbol) in self.delta:
-        q = self.delta[(q, symbol)]
-        
+        # Se houver transição definida, o autômato transita para o estado seguinte
+        q = self.delta[(q, symbol)]  
+
       else:
         # Se não houver transição definida, o autômato rejeita a cadeia
         return False
+        
+        # A variável 'in' verifica se o elemento está presente no conjunto
     return q in self.F
 
 
