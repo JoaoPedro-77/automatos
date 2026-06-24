@@ -43,3 +43,22 @@ if __name__ == "__main__":
   for teste in testes_nfa:
     resultado = nfa_exemplo.run(teste)
     print(f"NFA.run('{teste}') -> {resultado}")
+  
+
+  print("Deseja fazer seus próprios teste?")
+  resposta = input("S/N: ").upper()
+  if resposta == "S":
+    while True:
+      palavra = input("Digite a palavra: ")
+      resultado_dfa = dfa_exemplo.run(palavra)
+      resultado_nfa = nfa_exemplo.run(palavra)
+      print(f"DFA.run('{palavra}') -> {resultado_dfa}")
+      print(f"NFA.run('{palavra}') -> {resultado_nfa}")
+
+      resposta = input("Deseja fazer mais algum teste? S/N: ").upper()
+      if resposta == "N":
+        print("Obrigado por usar o simulador!")
+        break
+  
+  else:
+    print("Obrigado por usar o simulador!")
