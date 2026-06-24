@@ -14,9 +14,6 @@ class DFA:
   def run(self, w):
     q = self.q0
     for symbol in w:
-      if symbol not in self.sigma:
-        raise ValueError(f"Símbolo '{symbol}' não pertence ao alfabeto {self.sigma}")
-
       if (q, symbol) in self.delta:
         # Se houver transição definida, o autômato transita para o estado seguinte
         q = self.delta[(q, symbol)]  

@@ -1,57 +1,103 @@
+import string
+
 from dfa import DFA
 from nfa import NFA
 
 if __name__ == "__main__":
-  # --- 1. Exemplo de DFA ---
-  # Linguagem: Strings definidas sobre o alfabeto Sigma = {a, b} que não contêm a subpalavra "ba"
-  # Estados:
-  #   0: estado inicial, aceita qualquer sequência de "a"s
-  #   1: leu um "b", aceita contanto que não venha um "a" depois
-  #   2: leu "ba", estado de erro (rejeição permanente)
-  dfa_transicoes = {
-    (0, "a"): 0, (0, "b"): 1,
-    (1, "a"): 2, (1, "b"): 1,
-    (2, "a"): 2, (2, "b"): 2
+  
+  letras = set(string.ascii_lowercase)
+  digitos = set(string.digits)
+  sigma_url = letras | digitos | {':', '/', '.', '-', '_', '=', '?', '#', '%'}
+
+  dfa_url_transicoes = {
+    (0, 'h'): 1,
+    (1, 't'): 2,
+    (2, 't'): 3,
+    (3, 'p'): 4,
+    (4, ':'): 5,
+    (5, '/'): 6,
+    (6, '/'): 7
   }
 
-  dfa_exemplo = DFA(Q={0, 1, 2}, sigma={"a", "b"}, delta=dfa_transicoes, q0=0, F={0, 1}) 
+    # Do estado 7 em diante: qualquer char válido de domínio/path
+  chars_dominio = letras | digitos | {'.', '-', '_', '/', '=', '?', '#', '%'} # Domínio não possui ':'
+  
+  # A string é aceita se ler o prefixo 'http://' seguido de pelo menos um char do domínio
 
-  print("=== Testando DFA (Cadeias sem 'ba') ===")
-  testes_dfa = ["a", "aa", "ab", "b", "bb", "aba", "ba", "aab", "abbb", "bbba"]
+  for c in chars_dominio:
+    dfa_url_transicoes[(7, c)] = 8
+    dfa_url_transicoes[(8, c)] = 8
+
+  dfa_url = DFA(  
+    Q={0, 1, 2, 3, 4, 5, 6, 7, 8},
+    sigma=sigma_url,
+    delta=dfa_url_transicoes,
+    q0=0,
+    F={8}  # aceita após ler pelo menos 1 char do domínio
+  )
+
+
+  print("=== Testando DFA com o prefixo 'http://' ===")
+  
+  testes_dfa = ["http://google.com", "http://localhost:8080/teste", "http://google.com/search?q=python", "http://", "https://google.com", "ftp://google.com", "http://google.com/search?q=python"]
+
   for teste in testes_dfa:
-    resultado = dfa_exemplo.run(teste)
-    print(f"DFA.run('{teste}') -> {resultado}")
+    resultado = dfa_url.run(teste)
+    print(f"DFA.run('{teste}') -> {resultado}\n")
 
   print("\n" + "=" * 40 + "\n")
 
 
   # --- 2. Exemplo de NFA ---
-  # Linguagem: Strings sobre {a, b} que terminam com "ab"
-  # Estados:
-  #   0: estado inicial (pode ler 'a' ou 'b' e continuar em 0, ou ler 'a' e ir para 1)
-  #   1: leu um 'a' que possivelmente é o início de "ab"
-  #   2: leu o 'b' final (estado de aceitação)
-  nfa_transicoes = {
-    (0, "a"): {0, 1},
-    (0, "b"): {0},
-    (1, "b"): {2}
-  }
-  nfa_exemplo = NFA(Q={0, 1, 2}, sigma={"a", "b"}, delta=nfa_transicoes, q0=0, F={2})
 
-  print("=== Testando NFA (Cadeias terminando com 'ab') ===")
-  testes_nfa = ["ab", "aab", "bab", "abbab", "a", "b", "ba", "aba", "abab"]
+  # Alfabeto: letras, dígitos e símbolos comuns de URL
+  letras = set(string.ascii_lowercase)
+  digitos = set(string.digits)
+
+  sigma_url = letras | digitos | {':', '/', '.', '-', '_', '=', '?', '#', '%'}
+  # Transições fixas do prefixo "http://"
+  nfa_url_transicoes = {
+    (0, 'h'): {1},
+    (1, 't'): {2},
+    (2, 't'): {3},
+    (3, 'p'): {4},
+    (4, ':'): {5},
+    (5, '/'): {6},
+    (6, '/'): {7},
+  }
+
+  # Do estado 7 em diante: qualquer char válido de domínio/path
+  chars_dominio = letras | digitos | {'.', '-', '_', '/', '=', '?', '#', '%'} # Domínio não possui ':'
+  
+  # A string é aceita se ler o prefixo 'http://' seguido de pelo menos um char do domínio
+
+  for c in chars_dominio:
+    nfa_url_transicoes[(7, c)] = {8}
+    nfa_url_transicoes[(8, c)] = {8}
+
+  nfa_url = NFA(
+    Q={0, 1, 2, 3, 4, 5, 6, 7, 8},
+    sigma=sigma_url,
+    delta=nfa_url_transicoes,
+    q0=0,
+    F={8}  # aceita após ler pelo menos 1 char do domínio
+  )
+
+  print("=== Testando NFA (URLs com prefixo 'http://') ===")
+  testes_nfa = ["http://", "http://google", "http://google.com", "https://google.com", "ftp://google.com", "http://google.com/", "http://google.com/search?q=python"]
+
   for teste in testes_nfa:
-    resultado = nfa_exemplo.run(teste)
-    print(f"NFA.run('{teste}') -> {resultado}")
+    resultado = nfa_url.run(teste)
+    print(f"NFA.run('{teste}') -> {resultado}\n")
   
 
-  print("Deseja fazer seus próprios teste?")
+  print("Deseja testar sua própria URL?")
   resposta = input("S/N: ").upper()
   if resposta == "S":
     while True:
       palavra = input("Digite a palavra: ")
-      resultado_dfa = dfa_exemplo.run(palavra)
-      resultado_nfa = nfa_exemplo.run(palavra)
+      resultado_nfa = nfa_url.run(palavra)
+      resultado_dfa = dfa_url.run(palavra)
       print(f"DFA.run('{palavra}') -> {resultado_dfa}")
       print(f"NFA.run('{palavra}') -> {resultado_nfa}")
 
@@ -59,6 +105,6 @@ if __name__ == "__main__":
       if resposta == "N":
         print("Obrigado por usar o simulador!")
         break
-  
-  else:
+    
+  else: 
     print("Obrigado por usar o simulador!")
