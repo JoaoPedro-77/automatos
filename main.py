@@ -19,21 +19,46 @@ if __name__ == "__main__":
     (6, '/'): 7
   }
 
-    # Do estado 7 em diante: qualquer char válido de domínio/path
-  chars_dominio = letras | digitos | {'.', '-', '_', '/', '=', '?', '#', '%'} # Domínio não possui ':'
-  
-  # A string é aceita se ler o prefixo 'http://' seguido de pelo menos um char do domínio
+  # Definindo partes de uma URL para suporte a portas
+  chars_host = letras | digitos | {'.', '-', '_'}
+  chars_path = letras | digitos | {'.', '-', '_', '/', '=', '?', '#', '%', ':'}
+  non_host_path_chars = {'/', '?', '#', '=', '%'}
 
-  for c in chars_dominio:
+  # Do estado 7 em diante:
+  # Estado 7: leu 'http://'. Precisa de pelo menos um caractere de host para ir ao estado 8.
+  for c in chars_host:
     dfa_url_transicoes[(7, c)] = 8
     dfa_url_transicoes[(8, c)] = 8
 
+  # Do estado 8 (Host/Domínio):
+  # - Se ler ':', vai para o estado 9 (início da porta)
+  dfa_url_transicoes[(8, ':')] = 9
+  # - Se ler caracteres não-host do path, vai para o estado 11 (caminho/query)
+  for c in non_host_path_chars:
+    dfa_url_transicoes[(8, c)] = 11
+
+  # Do estado 9 (Lendo porta):
+  # - Precisa de um dígito para ir ao estado 10 (porta válida)
+  for d in digitos:
+    dfa_url_transicoes[(9, d)] = 10
+    dfa_url_transicoes[(10, d)] = 10
+
+  # Do estado 10 (Porta válida):
+  # - Se ler caracteres de path, vai para o estado 11
+  for c in non_host_path_chars:
+    dfa_url_transicoes[(10, c)] = 11
+
+  # Do estado 11 (Caminho/Query):
+  # - Aceita qualquer caractere válido de path
+  for c in chars_path:
+    dfa_url_transicoes[(11, c)] = 11
+
   dfa_url = DFA(  
-    Q={0, 1, 2, 3, 4, 5, 6, 7, 8},
+    Q={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
     sigma=sigma_url,
     delta=dfa_url_transicoes,
     q0=0,
-    F={8}  # aceita após ler pelo menos 1 char do domínio
+    F={8, 10, 11}  # aceita se terminar no domínio, na porta ou no caminho
   )
 
 
@@ -66,21 +91,40 @@ if __name__ == "__main__":
     (6, '/'): {7},
   }
 
-  # Do estado 7 em diante: qualquer char válido de domínio/path
-  chars_dominio = letras | digitos | {'.', '-', '_', '/', '=', '?', '#', '%'} # Domínio não possui ':'
-  
-  # A string é aceita se ler o prefixo 'http://' seguido de pelo menos um char do domínio
+  # Definindo partes de uma URL para suporte a portas no NFA
+  chars_host = letras | digitos | {'.', '-', '_'}
+  chars_path = letras | digitos | {'.', '-', '_', '/', '=', '?', '#', '%', ':'}
+  non_host_path_chars = {'/', '?', '#', '=', '%'}
 
-  for c in chars_dominio:
+  # Do estado 7 em diante:
+  for c in chars_host:
     nfa_url_transicoes[(7, c)] = {8}
     nfa_url_transicoes[(8, c)] = {8}
 
+  # Transições do estado 8 (Host):
+  nfa_url_transicoes[(8, ':')] = {9}
+  for c in non_host_path_chars:
+    nfa_url_transicoes[(8, c)] = {11}
+
+  # Transições do estado 9 (Porta):
+  for d in digitos:
+    nfa_url_transicoes[(9, d)] = {10}
+    nfa_url_transicoes[(10, d)] = {10}
+
+  # Transições do estado 10 (Porta válida):
+  for c in non_host_path_chars:
+    nfa_url_transicoes[(10, c)] = {11}
+
+  # Transições do estado 11 (Caminho/Query):
+  for c in chars_path:
+    nfa_url_transicoes[(11, c)] = {11}
+
   nfa_url = NFA(
-    Q={0, 1, 2, 3, 4, 5, 6, 7, 8},
+    Q={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
     sigma=sigma_url,
     delta=nfa_url_transicoes,
     q0=0,
-    F={8}  # aceita após ler pelo menos 1 char do domínio
+    F={8, 10, 11}  # aceita se terminar no domínio, na porta ou no caminho
   )
 
   print("=== Testando NFA (URLs com prefixo 'http://') ===")
