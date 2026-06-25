@@ -1,6 +1,6 @@
 import string
-from src.dfa import DFA
-from src.nfa import NFA
+from models.dfa import DFA
+from models.nfa import NFA
 
 def get_automata():
     letras = set(string.ascii_lowercase)
