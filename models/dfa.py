@@ -1,5 +1,3 @@
-
-
 class DFA:
   def __init__(self, Q, sigma, delta, q0, F):
     self.Q = Q          # Conjunto de estados (ex: {0, 1, 2})
@@ -22,5 +20,4 @@ class DFA:
         # Se não houver transição definida, o autômato rejeita a cadeia
         return False
         
-        # A variável 'in' verifica se o elemento está presente no conjunto
     return q in self.F
