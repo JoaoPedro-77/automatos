@@ -1,4 +1,10 @@
-from src.builder import get_automata
+import sys
+import os
+
+# Adiciona o diretório pai (raiz do projeto) ao sys.path para permitir importações do módulo 'models'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from models.builder import get_automata
 
 if __name__ == "__main__":
   dfa_url, nfa_url = get_automata()

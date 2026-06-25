@@ -1,12 +1,18 @@
+import sys
+import os
+
+# Adiciona o diretório pai (raiz do projeto) ao sys.path para permitir importações do módulo 'models'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import streamlit as st
 import string
 import pandas as pd
 import graphviz
 
-from src.dfa import DFA
-from src.nfa import NFA
-from src.builder import get_automata
-from src.views.web import render_interface
+from models.dfa import DFA
+from models.nfa import NFA
+from models.builder import get_automata
+from views.web import render_interface
 
 # Configuração da página do Streamlit
 st.set_page_config(
